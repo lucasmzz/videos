@@ -7,26 +7,43 @@ import VideoList from './VideoList';
 class App extends React.Component {
 
 	state = {
-		videos: []
+		videos: [],
+		selectedVideo: null
+	};
+
+	componentDidMount() {
+		this.onFormSubmit('maradona');
+	}
+	onVideoSelect = (video) => {
+		this.setState({ selectedVideo: video });
 	};
 
 	onFormSubmit = async (term) => {
-		const response = await youtube.get(`https://www.googleapis.com/youtube/v3/search?
-					part=snippet
-					&order=viewCount
-					&q=${term}
-					&type=video
-					&videoDefinition=high
-					&key=AIzaSyCd2FRXrDqrU39txSSMi9y5EqbFWVRG0rQ`);
-		this.setState({videos: response.data.items});
+		const response = await youtube.get('/search',{
+				params: {
+					q: term
+				}
+		});
+		this.setState({
+			videos: response.data.items,
+			selectedVideo: response.data.items[0]
+		});
 	};
 
 	render() {
 		return (
 			<div className="ui container" style={{marginTop: '10px'}}>
 				<SearchBar term={this.state.term} onFormSubmit={this.onFormSubmit}/>
-				<VideoDetail />
-				<VideoList videos={this.state.videos} />					
+				<div className="ui grid">
+					<div className="ui row">
+						<div className="eleven wide column">
+							<VideoDetail video={this.state.selectedVideo}/>
+						</div>
+						<div className="five wide column">
+							<VideoList onVideoSelect={this.onVideoSelect} videos={this.state.videos} />
+						</div>
+					</div>
+				</div>					
 			</div>
 		);
 	}
